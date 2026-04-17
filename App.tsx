@@ -1872,7 +1872,10 @@ ${componentLogic}
       instructionStyle,
       isInstructionBackgroundEnabled,
       isColorExportEnabled,
-      theme
+      theme,
+      brandSettings,      // ← NEW
+      paperDesign,        // ← NEW
+      topic               // ← NEW
     );
     
     setExportSettings(prev => ({ ...prev, showModal: false }));

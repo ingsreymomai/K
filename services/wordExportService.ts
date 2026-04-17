@@ -2,6 +2,202 @@ import { saveAs } from 'file-saver';
 import { jsPDF } from 'jspdf';
 import { toPng } from 'html-to-image';
 
+/**
+ * Builds a Word-compatible header that closely matches the web design.
+ * Uses VML-safe table structures with mso-* properties for background colors.
+ */
+function buildWordSafeHeader(
+  schoolName: string,
+  schoolAddress: string,
+  studentLabel: string,
+  classLabel: string,
+  dateLabel: string,
+  scoreLabel: string,
+  teacherLabel: string,
+  logoData: string | undefined,
+  paperDesign: number,
+  activeRulerColor: string,
+  fontFamily: string,
+  topic: string
+): string {
+
+  const logoHtml = logoData
+    ? `<img src="${logoData}" style="width:60pt;height:auto;display:block;" />`
+    : '';
+
+  // ── Style 8 (paperDesign === 8): "Modern Red" — matches your screenshot exactly ──
+  if (paperDesign === 8 || paperDesign === 18 || paperDesign === 19 || paperDesign === 20 || paperDesign === 21) {
+    const accentColor =
+      paperDesign === 8  ? '#c0392b' :  // Red
+      paperDesign === 18 ? '#16a34a' :  // Green
+      paperDesign === 19 ? '#2563eb' :  // Blue
+      paperDesign === 20 ? '#7c3aed' :  // Purple
+                           '#ea580c';   // Orange
+
+    return `
+    <!-- RED TOP BANNER -->
+    <table border="0" cellspacing="0" cellpadding="0" width="100%"
+      style="width:100%; border-collapse:collapse; margin-bottom:0pt;">
+      <tr>
+        <td style="background-color:${accentColor}; mso-shading:${accentColor}; 
+                   mso-pattern:solid; height:10pt; font-size:1pt;">&nbsp;</td>
+      </tr>
+    </table>
+
+    <!-- SCHOOL NAME LEFT + STUDENT FIELDS RIGHT -->
+    <table border="0" cellspacing="0" cellpadding="0" width="100%"
+      style="width:100%; border-collapse:collapse; margin-bottom:8pt; margin-top:8pt;">
+      <tr>
+        <td style="width:60%; vertical-align:bottom; padding:8pt 4pt 4pt 0;">
+          ${logoHtml}
+          <div style="font-size:22pt; font-weight:900; color:${accentColor}; 
+                      font-family:'${fontFamily}',serif; text-transform:uppercase;
+                      line-height:1.1; margin-bottom:4pt;">
+            ${schoolName}
+          </div>
+          <div style="font-size:9pt; color:${accentColor}; font-weight:700;
+                      text-transform:uppercase; letter-spacing:2pt;">
+            ACADEMIC EVALUATION
+          </div>
+        </td>
+        <td style="width:40%; vertical-align:top; padding:8pt 0 4pt 10pt; text-align:right;">
+          <table border="0" cellspacing="0" cellpadding="0" style="margin-left:auto;">
+            <tr>
+              <td style="font-size:9pt; font-style:italic; padding-bottom:4pt; text-align:right;">
+                ${studentLabel}:
+              </td>
+            </tr>
+            <tr>
+              <td style="border-bottom:1pt solid #000000; width:120pt; height:12pt; 
+                         padding-bottom:6pt;">&nbsp;</td>
+            </tr>
+            <tr><td style="height:6pt;">&nbsp;</td></tr>
+            <tr>
+              <td style="font-size:9pt; font-style:italic; padding-bottom:4pt; text-align:right;">
+                ${classLabel}:
+              </td>
+            </tr>
+            <tr>
+              <td style="border-bottom:1pt solid #000000; width:120pt; height:12pt; 
+                         padding-bottom:6pt;">&nbsp;</td>
+            </tr>
+            <tr><td style="height:6pt;">&nbsp;</td></tr>
+            <tr>
+              <td style="font-size:9pt; font-style:italic; padding-bottom:4pt; text-align:right;">
+                ${dateLabel}:
+              </td>
+            </tr>
+            <tr>
+              <td style="border-bottom:1pt solid #000000; width:120pt; height:12pt; 
+                         padding-bottom:6pt;">&nbsp;</td>
+            </tr>
+          </table>
+        </td>
+      </tr>
+    </table>
+    <!-- DIVIDER LINE -->
+    <table border="0" cellspacing="0" cellpadding="0" width="100%"
+      style="width:100%; border-collapse:collapse; margin-bottom:12pt;">
+      <tr>
+        <td style="border-bottom:2pt solid ${accentColor}; 
+                   mso-border-bottom-alt:2pt solid ${accentColor}; 
+                   height:1pt; font-size:1pt;">&nbsp;</td>
+      </tr>
+    </table>`;
+  }
+
+  // ── Style 1 (paperDesign === 1): Boxed header ──
+  if (paperDesign === 1) {
+    return `
+    <table border="0" cellspacing="0" cellpadding="10" width="100%"
+      style="width:100%; border-collapse:collapse; border:2pt solid #000000; margin-bottom:12pt;">
+      <tr>
+        <td colspan="2" style="text-align:center; padding:12pt; border-bottom:1pt solid #000000;">
+          <div style="font-size:18pt; font-weight:900; text-transform:uppercase;">${schoolName}</div>
+        </td>
+      </tr>
+      <tr>
+        <td style="font-size:9pt; font-weight:700; padding:6pt 10pt; width:50%;">
+          ${studentLabel}: ________________________
+        </td>
+        <td style="font-size:9pt; font-weight:700; padding:6pt 10pt; width:50%;">
+          ${dateLabel}: ________________________
+        </td>
+      </tr>
+      <tr>
+        <td style="font-size:9pt; font-weight:700; padding:6pt 10pt;">
+          ${classLabel}: _________________________
+        </td>
+        <td style="font-size:9pt; font-weight:700; padding:6pt 10pt;">
+          ${scoreLabel}: ________ / ________
+        </td>
+      </tr>
+    </table>`;
+  }
+
+  // ── Style 4 (paperDesign === 4): Dark header ──
+  if (paperDesign === 4) {
+    return `
+    <table border="0" cellspacing="0" cellpadding="0" width="100%"
+      style="width:100%; border-collapse:collapse; margin-bottom:12pt;">
+      <tr>
+        <td style="background-color:#1e293b; mso-shading:#1e293b; mso-pattern:solid;
+                   padding:16pt; border-radius:8pt;">
+          <div style="color:#ffffff; font-size:18pt; font-weight:900; 
+                      text-transform:uppercase; margin-bottom:10pt;">${schoolName}</div>
+          <table border="0" cellspacing="0" cellpadding="0" width="100%">
+            <tr>
+              <td style="color:#ffffff; font-size:9pt; font-weight:700; 
+                         border-bottom:1pt solid rgba(255,255,255,0.3); padding-bottom:2pt; width:33%;">
+                ${studentLabel}: ____________
+              </td>
+              <td style="color:#ffffff; font-size:9pt; font-weight:700;
+                         border-bottom:1pt solid rgba(255,255,255,0.3); padding-bottom:2pt; width:33%;">
+                ${classLabel}: ____________
+              </td>
+              <td style="color:#ffffff; font-size:9pt; font-weight:700;
+                         border-bottom:1pt solid rgba(255,255,255,0.3); padding-bottom:2pt; width:34%;">
+                ${scoreLabel}: ______
+              </td>
+            </tr>
+          </table>
+        </td>
+      </tr>
+    </table>`;
+  }
+
+  // ── DEFAULT: Classic clean header (paperDesign 0, 2, 3, 5, 6, 7, 9, 10, 11...) ──
+  return `
+  <table border="0" cellspacing="0" cellpadding="0" width="100%"
+    style="width:100%; border-collapse:collapse; margin-bottom:8pt;">
+    <tr>
+      <td style="border-bottom:2pt solid #000000; padding-bottom:10pt;">
+        <table border="0" cellspacing="0" cellpadding="0" width="100%">
+          <tr>
+            <td style="vertical-align:middle; width:70%;">
+              ${logoHtml}
+              <div style="font-size:18pt; font-weight:900; text-transform:uppercase;
+                          line-height:1.2;">${schoolName}</div>
+              ${schoolAddress ? `<div style="font-size:9pt; color:#666666;">${schoolAddress}</div>` : ''}
+            </td>
+            <td style="vertical-align:top; width:30%; text-align:right;">
+              <div style="font-size:9pt; font-weight:700; margin-bottom:4pt;">
+                ${studentLabel}: _______________
+              </div>
+              <div style="font-size:9pt; font-weight:700; margin-bottom:4pt;">
+                ${classLabel}: _______________
+              </div>
+              <div style="font-size:9pt; font-weight:700;">
+                ${dateLabel}: _______________
+              </div>
+            </td>
+          </tr>
+        </table>
+      </td>
+    </tr>
+  </table>`;
+}
+
 export interface ExportMetadata {
   author?: string;
   date?: string;
@@ -27,7 +223,20 @@ export const exportToWord = (
   instructionStyle: number = 0,
   isInstructionBackgroundEnabled: boolean = false,
   isColorExportEnabled: boolean = false,
-  exportTheme: number = 1
+  exportTheme: number = 1,
+  // ── NEW PARAMS ──
+  brandSettings?: {
+    schoolName?: string;
+    schoolAddress?: string;
+    studentLabel?: string;
+    classLabel?: string;
+    dateLabel?: string;
+    scoreLabel?: string;
+    teacherLabel?: string;
+    logoData?: string;
+  },
+  paperDesignIndex?: number,
+  topicText?: string
 ) => {
   const tempDiv = document.createElement('div');
   tempDiv.innerHTML = htmlContent;
@@ -41,6 +250,24 @@ export const exportToWord = (
   else if (globalLayout === 2 || activeDesign === 'design-eco') activeRulerColor = '#059669';
   else if (activeDesign === 'design-modern-blue') activeRulerColor = '#2563eb';
   else if (globalLayout === 3) activeRulerColor = '#9333ea'; // Purple for Soft Lavender
+
+  // ── WORD-SAFE HEADER OVERRIDE ──
+  // The LLM-generated header uses CSS that Word ignores.
+  // We replace it with a table-based Word-compatible version.
+  const wordSafeHeader = buildWordSafeHeader(
+    brandSettings?.schoolName || 'GLOBAL EDUCATION ACADEMY',
+    brandSettings?.schoolAddress || '',
+    brandSettings?.studentLabel || 'STUDENT NAME',
+    brandSettings?.classLabel || 'CLASS',
+    brandSettings?.dateLabel || 'DATE',
+    brandSettings?.scoreLabel || 'SCORE',
+    brandSettings?.teacherLabel || 'TEACHER',
+    brandSettings?.logoData,
+    paperDesignIndex || 8,                    // paperDesign
+    activeRulerColor,
+    fontFamily,
+    topicText || ''
+  );
 
   // Dynamic Line Spacing Logic
   const spacingMap: Record<string, string> = {
@@ -383,9 +610,9 @@ export const exportToWord = (
         <!-- Master Table for Paper Design -->
         <table border="0" cellspacing="0" cellpadding="0" width="100%" style="width: 100%; border-collapse: collapse;">
           <tr>
-            <td style="padding: 30pt; ${paperTdStyle} ${frameStyle}">
+          <td style="padding: 30pt; ${paperTdStyle} ${frameStyle}">
               <div style="${globalLayout === 1 ? 'border-left: 3pt solid #059669; padding-left: 15pt; mso-border-left-alt: 3.5pt solid #059669;' : ''}">
-                ${headerDiv.innerHTML}
+                ${brandSettings ? wordSafeHeader : headerDiv.innerHTML}
                 ${finalHtml}
               </div>
             </td>
