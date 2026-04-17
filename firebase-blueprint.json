@@ -1,0 +1,74 @@
+{
+  "entities": {
+    "HistoryItem": {
+      "title": "HistoryItem",
+      "description": "A generated test worksheet",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "title": { "type": "string" },
+        "content": { "type": "string" },
+        "timestamp": { "type": "number" },
+        "uid": { "type": "string" }
+      },
+      "required": ["id", "title", "content", "timestamp", "uid"]
+    },
+    "CustomExerciseType": {
+      "title": "CustomExerciseType",
+      "description": "User-defined exercise type",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "name": { "type": "string" },
+        "category": { "type": "string", "enum": ["Grammar", "Reading", "Vocabulary", "Mixed"] },
+        "uid": { "type": "string" }
+      },
+      "required": ["id", "name", "category", "uid"]
+    },
+    "CustomDesign": {
+      "title": "CustomDesign",
+      "description": "User-defined visual style for an exercise type",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "name": { "type": "string" },
+        "type": { "type": "string" },
+        "html": { "type": "string" },
+        "css": { "type": "string" },
+        "uid": { "type": "string" }
+      },
+      "required": ["id", "name", "type", "html", "uid"]
+    },
+    "UserSettings": {
+      "title": "UserSettings",
+      "description": "User-specific application settings and branding",
+      "type": "object",
+      "properties": {
+        "schoolName": { "type": "string" },
+        "schoolAddress": { "type": "string" },
+        "logoData": { "type": "string" },
+        "activeFont": { "type": "string" },
+        "uid": { "type": "string" }
+      },
+      "required": ["uid"]
+    }
+  },
+  "firestore": {
+    "/history/{historyId}": {
+      "schema": "HistoryItem",
+      "description": "Collection of generated tests"
+    },
+    "/customExerciseTypes/{typeId}": {
+      "schema": "CustomExerciseType",
+      "description": "Collection of user-defined exercise types"
+    },
+    "/customDesigns/{designId}": {
+      "schema": "CustomDesign",
+      "description": "Collection of user-defined styles"
+    },
+    "/users/{userId}": {
+      "schema": "UserSettings",
+      "description": "User profile and settings"
+    }
+  }
+}
